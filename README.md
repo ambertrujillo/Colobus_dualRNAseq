@@ -55,3 +55,8 @@ sbatch/dump.sbatch
 ```bash
 sbatch/trim_reads.sbatch
 ```
+6. Align Colobus reads to concatenated Host-Pathogen Referance sequence 
+> Necessary module(s): gcc/9.1.0 and star/intel/2.5.2b
+```bash
+sbatch/align_genome.sbatch
+```
