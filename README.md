@@ -4,6 +4,7 @@
 # Pipeline
 
 1. Download Reference Genomes and Annotation files from RefSeq assembly in ftp directory
+> Necessary module: kent/328
   * _Piliocolobus tephrosceles_
 ```bash
 scripts/download_Rcolobus.sh
