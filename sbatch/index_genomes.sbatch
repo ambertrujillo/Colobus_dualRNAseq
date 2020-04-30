@@ -23,7 +23,6 @@ module load gcc/9.1.0 star/intel/2.5.2b
 
 mkdir -p genomes/index
 
-
 STAR --runThreadN 2 \
 --runMode genomeGenerate \
 --genomeDir genomes/index \
@@ -32,3 +31,5 @@ STAR --runThreadN 2 \
 --sjdbOverhang 99 \
 --outFileNamePrefix genomes/index/combinedindex \
 --limitGenomeGenerateRAM=40712737493
+
+cd ..
