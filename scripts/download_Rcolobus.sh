@@ -4,8 +4,8 @@
 
 module load kent/328
 
-mkdir -p genomes/Rcolobus
-cd genomes/Rcolobus
+mkdir -p genomes
+cd genomes
 
 GENOME_FA=Rcolobus.fa
 
