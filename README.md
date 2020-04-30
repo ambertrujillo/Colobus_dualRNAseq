@@ -47,3 +47,8 @@ sbatch/prefetch.sbatch
 ```
 sbatch/dump.sbatch
 ```
+5. Trim Colobus reads
+> Necessary module(s): trimmomatic/0.36
+```bash
+sbatch/trim_reads.sbatch
+```
