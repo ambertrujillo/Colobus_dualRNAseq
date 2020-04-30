@@ -2,11 +2,6 @@
 
 # Script to download Plasmodium gonderi genome, gonderi
 
-module load kent/328
-
-mkdir -p genomes/gonderi
-cd genomes/gonderi
-
 GENOME_FA=gonderi.fa
 
 PGONDERI_URL=ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/157/705
