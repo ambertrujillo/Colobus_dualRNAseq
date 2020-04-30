@@ -34,3 +34,14 @@ cat gonderi.gtf Rcolobus.fix.gtf > combined.gtf
 ```sbatch
 sbatch/index_genomes.sbatch
 ```
+4. Download Ugandan Red Colobus Reads
+> Necessary module(s): edirect/20181128 and sra-tools/intel/2.9.6
+```
+esearch -db sra -query PRJNA413051 | efetch --format runinfo | cut -d "," -f 1 > SRR.numbers
+```
+```
+sbatch/prefetch.sbatch
+```
+```
+sbatch/dump.sbatch
+```
