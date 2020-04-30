@@ -56,7 +56,7 @@ sbatch/dump.sbatch
 5. Trim Colobus reads (ARRAY JOB)
 > Necessary module(s): trimmomatic/0.36
 
-> To submit an sbatch array job: `sbatch --array=1-[number of individuals]`
+> To submit an sbatch array job: `sbatch --array=1-[number of individuals] sbatch/name_of_job.sbatch`
 
 ```bash
 sbatch/trim_reads.sbatch
