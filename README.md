@@ -37,8 +37,8 @@ sbatch/index_genomes.sbatch
 4. Download Ugandan Red Colobus Reads
 > Necessary module(s): edirect/20181128, sra-tools/intel/2.9.6, and parallel/20171022
 ```bash
-mkdir data
-cd data
+mkdir data/Rcolobus
+cd data/Rcolobus
 esearch -db sra -query PRJNA413051 | efetch --format runinfo | cut -d "," -f 1 > SRR.numbers
 ```
 ```
@@ -49,6 +49,7 @@ sbatch/dump.sbatch
 ```
 5. Trim Colobus reads
 > Necessary module(s): trimmomatic/0.36
+> to submit an array job put sbatch --array=1-[number of individuals]
 ```bash
 sbatch/trim_reads.sbatch
 ```
