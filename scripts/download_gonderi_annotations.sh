@@ -6,7 +6,6 @@
 
 # --- Download annotations for Plasmodium gonderi genome, gonderi
 
-
 cd papio_gonderi/genomes/gonderi #Think I should be in /home/aet359/baboon_malaria not papAnu3?
 
 PGONDERI_URL=ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/157/705
