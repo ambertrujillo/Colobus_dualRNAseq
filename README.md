@@ -29,13 +29,19 @@ cat *.fa > combined.fa
 ```bash
 cat gonderi.gtf Rcolobus.fix.gtf > combined.gtf
 ```
-3. Index concatenated Reference Genome
+3. Index concatenated Reference Genome (SBATCH JOB)
 > Necessary module(s): gcc/9.1.0 and star/intel/2.5.2b
+
+> To submit sbatch job: `sbatch sbatch/name_of_job.sbatch`
+
 ```sbatch
 sbatch/index_genomes.sbatch
 ```
 4. Download Ugandan Red Colobus Reads
 > Necessary module(s): edirect/20181128, sra-tools/intel/2.9.6, and parallel/20171022
+
+> After creating SRR.numbers, prefetch and dump are SBATCH JOBS
+
 ```bash
 mkdir data/Rcolobus
 cd data/Rcolobus
@@ -47,15 +53,15 @@ sbatch/prefetch.sbatch
 ```
 sbatch/dump.sbatch
 ```
-5. Trim Colobus reads
+5. Trim Colobus reads (ARRAY JOB)
 > Necessary module(s): trimmomatic/0.36
 
-> To submit an array job put sbatch --array=1-[number of individuals]
+> To submit an sbatch array job: `sbatch --array=1-[number of individuals]`
 
 ```bash
 sbatch/trim_reads.sbatch
 ```
-6. Align Colobus reads to concatenated Host-Pathogen Referance sequence 
+6. Align Colobus reads to concatenated Host-Pathogen Referance sequence (ARRAY JOB)
 > Necessary module(s): gcc/9.1.0 and star/intel/2.5.2b
 ```bash
 sbatch/align_genome.sbatch
