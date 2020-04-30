@@ -4,7 +4,7 @@
 # Pipeline
 
 1. Download Reference Genomes and Annotation files from RefSeq assembly in ftp directory
-  * _Piliocolobus tephrosceles_.
+  * _Piliocolobus tephrosceles_
 ```bash
 scripts/download_Rcolobus.sh
 ```
@@ -17,4 +17,14 @@ scripts/download_gonderi.sh
 ```
 ```bash
 scripts/download_gonderi_annotations.sh
+```
+2. Concatenate Host-Pathogen Reference Genomes and Annotation files
+  * Reference Genomes
+```bash
+cd genomes
+cat *.fa > combined.fa
+```
+  * Annotation files
+```bash
+cat gonderi.gtf Rcolobus.fix.gtf > combined.gtf
 ```
