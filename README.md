@@ -2,6 +2,7 @@
 
 
 # Pipeline
+## Align RNAseq Data to Reference Genome
 
 1. Download Reference Genomes and Annotation files from RefSeq assembly in ftp directory
 > Necessary module(s): kent/328
@@ -64,5 +65,19 @@ sbatch/trim_reads.sbatch
 6. Align Colobus reads to concatenated Host-Pathogen Referance sequence (ARRAY JOB)
 > Necessary module(s): gcc/9.1.0 and star/intel/2.5.2b
 ```bash
+mkdir results
+```
+```bash
 sbatch/align_genome.sbatch
+```
+## Obtain "Unique" Host and Pathogen Data (ARRAY JOB)
+```bash
+mkdir results/mapped_reads
+cd results/mapped_reads
+mkdir colobus
+mkdir plasmodium
+cd ../..
+```
+```bash
+sbatch/extract_reads.sbatch
 ```
