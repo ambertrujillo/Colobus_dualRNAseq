@@ -12,12 +12,12 @@ scripts/download_Rcolobus.sh
 ```bash
 scripts/download_Rcolobus_annotations.sh
 ```
-  * _Plasmodium gonderi_
+  * _Plasmodium vivax_
 ```bash
-scripts/download_gonderi.sh
+scripts/download_vivax.sh
 ```
 ```bash
-scripts/download_gonderi_annotations.sh
+scripts/download_vivax_annotations.sh
 ```
 2. Concatenate Host-Pathogen Reference Genomes and Annotation files
   * Reference Genomes
@@ -27,7 +27,7 @@ cat *.fa > combined.fa
 ```
   * Annotation files
 ```bash
-cat gonderi.gtf Rcolobus.fix.gtf > combined.gtf
+cat *.gtf > combined.gtf
 ```
 3. Index concatenated Reference Genome (SBATCH JOB)
 > Necessary module(s): gcc/9.1.0 and star/intel/2.5.2b
