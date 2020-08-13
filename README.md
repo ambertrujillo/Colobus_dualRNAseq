@@ -104,4 +104,35 @@ fc = featureCounts(bams, annot.ext=gtf.file,
 
 save.image("fc.Rdata")
 ```
+  * As file is running, create percent_parasitemia table in excel (enter Colobus_Reads_Mapped):
+ > Colobus_Reads_Mapped = "Successfully assigned alignments"
+ 
+  * Do same for "unique" pathogen data 
+ ```bash
+module load r/intel/3.6.0
+R
+```
+```R
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("Rsubread")
 
+library(Rsubread)
+
+bams = list.files(path = "results/mapped_reads/plasmodium", pattern = "*.bam$", full.names=TRUE)
+gtf.file = "genomes/combined.gtf"
+fc = featureCounts(bams, annot.ext=gtf.file,
+    isGTFAnnotationFile=TRUE,
+    isPairedEnd=TRUE,
+    nthreads=8,
+    allowMultiOverlap=TRUE)
+
+save.image("Plasfc.Rdata")
+```
+  * As file is running, create percent_parasitemia table in excel (enter Plasmodium_Reads_Mapped):
+ > Plasmodium_Reads_Mapped = "Successfully assigned alignments"
+ 
+  * Calculate Total_Reads:
+ > Total_Reads = sum(Colobus_Reads_Mapped, Plasmodium_Reads_Mapped)
+  * Calculate Percent_Parasitemia:
+ > Plasmodium_Reads_Mapped / Total_Reads
