@@ -81,3 +81,27 @@ cd ../..
 ```bash
 sbatch/extract_reads.sbatch
 ```
+
+## Obtain Read Count Matrix
+```bash
+module load r/intel/3.6.0
+R
+```
+```R
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("Rsubread")
+
+library(Rsubread)
+
+bams = list.files(path = "results/mapped_reads/colobus", pattern = "*.bam$", full.names=TRUE)
+gtf.file = "genomes/combined.gtf"
+fc = featureCounts(bams, annot.ext=gtf.file,
+    isGTFAnnotationFile=TRUE,
+    isPairedEnd=TRUE,
+    nthreads=8,
+    allowMultiOverlap=TRUE)
+
+save.image("fc.Rdata")
+```
+
