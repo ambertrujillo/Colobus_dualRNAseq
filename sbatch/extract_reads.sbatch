@@ -30,6 +30,7 @@ echo "Extracting primary reads..."
 #Only output primary reads
 samtools view -F 256 -b $READ_DIR/${THIS_IND}Aligned.sortedByCoord.out.bam > $READ_DIR/${THIS_IND}.primary.bam
 
+
 echo "Splitting bam files..."
 
 #Splits bam files into chromosomes
@@ -45,47 +46,12 @@ rm $READ_DIR/${THIS_IND}.primary.REF_unmapped.bam
 echo "Merging bams..."
 
 #-->Colobus
-bamtools merge -in $READ_DIR/${THIS_IND}.primary.REF_Colchr1.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr2.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr3.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr4.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr5.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr6.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr7.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr8.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr9.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr10.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr11.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr12.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr13.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr14.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr15.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr16.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr17.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr18.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr19.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr20.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Colchr21.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_ColchrX.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_ColchrY.bam \
--out $READ_DIR/${THIS_IND}.colobus.bam
+ls $READ_DIR/${THIS_IND}.primary.REF_Colchr*.bam > $READ_DIR/${THIS_IND}.Colbamlist.txt
+bamtools merge -list $READ_DIR/${THIS_IND}.Colbamlist.txt -out $READ_DIR/${THIS_IND}.colobus.bam
 
 #-->Plasmodium
-bamtools merge -in $READ_DIR/${THIS_IND}.primary.REF_Plaschr1.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr2.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr3.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr4.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr5.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr6.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr7.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr8.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr9.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr10.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr11.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr12.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr13.bam \
--in $READ_DIR/${THIS_IND}.primary.REF_Plaschr14.bam \
--out $READ_DIR/${THIS_IND}.plasmodium.bam
+ls $READ_DIR/${THIS_IND}.primary.REF_Plaschr*.bam > $READ_DIR/${THIS_IND}.Plasbamlist.txt
+bamtools merge -list $READ_DIR/${THIS_IND}.Plasbamlist.txt -out $READ_DIR/${THIS_IND}.plasmodium.bam
 
 echo "Removing mess you made ..."
 
