@@ -82,7 +82,7 @@ cd ../..
 sbatch/extract_reads.sbatch
 ```
 
-## Obtain Read Count Matrix
+## Obtain Read Count Matrix and Calculate Percent Parasitemia
 ```bash
 module load r/intel/3.6.0
 R
