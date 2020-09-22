@@ -99,13 +99,13 @@ library(Rsubread)
 
 bams = list.files(path = "results/mapped_reads/colobus", pattern = "*.bam$", full.names=TRUE)
 gtf.file = "genomes/combined.gtf"
-fc = featureCounts(bams, annot.ext=gtf.file,
+colobusfc = featureCounts(bams, annot.ext=gtf.file,
     isGTFAnnotationFile=TRUE,
     isPairedEnd=TRUE,
     nthreads=8,
     allowMultiOverlap=TRUE)
 
-save.image("fc.Rdata")
+save.image("colobusfc.Rdata")
 ```
   * As file is running, create percent_parasitemia table in excel (enter Colobus_Reads_Mapped):
  > Colobus_Reads_Mapped = "Successfully assigned alignments"
