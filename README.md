@@ -150,3 +150,12 @@ save.image("Hepatofc.Rdata")
 module load r/intel/3.6.0
 Rscript scripts/find_DE_host_genes.R
 ```
+ ## Single-Cell RNAseq Deconvolution
+ > Necessary module(s): r/intel/3.6.0
+ 
+ > Necessary R package(s): Seurat, limma, Biobase, reshape2, bseqsc, xbioc, ggplot2, tidyr
+ ```bash
+ module load r/intel/3.6.0
+ Rscript script/deconvolution.R
+ ```
+ 
