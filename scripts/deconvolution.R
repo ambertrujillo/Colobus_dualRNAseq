@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 # Need a single cell dataset -- gene expression rows vs cells and gene expression assigned to those cells. Then your bulk gene expression data
 
 #-->1 Get top markers from single cell data
