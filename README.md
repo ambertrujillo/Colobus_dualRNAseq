@@ -13,12 +13,12 @@ scripts/download_Rcolobus.sh
 ```bash
 scripts/download_Rcolobus_annotations.sh
 ```
-  * _Plasmodium vivax_
+  * _Hepatocystis sp._
 ```bash
-scripts/download_vivax.sh
+scripts/download_hep.sh
 ```
 ```bash
-scripts/download_vivax_annotations.sh
+scripts/download_hep_annotations.sh
 ```
 2. Concatenate Host-Pathogen Reference Genomes and Annotation files
   * Reference Genomes
@@ -75,7 +75,7 @@ sbatch/align_genome.sbatch
 mkdir results/mapped_reads
 cd results/mapped_reads
 mkdir colobus
-mkdir plasmodium
+mkdir hepatocystis
 cd ../..
 ```
 ```bash
