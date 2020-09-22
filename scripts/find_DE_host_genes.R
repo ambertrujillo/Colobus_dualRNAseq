@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # ----------------------------------------------------------------------------------------
-# --- Find baboon genes with expression correlated with parasitemia
+# --- Find Colobus genes with expression correlated with parasitemia
 # ----------------------------------------------------------------------------------------
 
 # cd /scratch/aet359/colobus_hep
