@@ -75,8 +75,13 @@ sbatch/align_genome.sbatch
 mkdir results/mapped_reads
 cd results/mapped_reads
 mkdir colobus
+cd colobus
+mkdir merged_reads
+cd ..
 mkdir hepatocystis
-cd ../..
+cd hepatocystis
+mkdir merged_reads
+cd ../../..
 ```
 ```bash
 sbatch/extract_reads.sbatch
