@@ -102,7 +102,7 @@ BiocManager::install("Rsubread")
 
 library(Rsubread)
 
-bams = list.files(path = "results/mapped_reads/colobus", pattern = "*.bam$", full.names=TRUE)
+bams = list.files(path = "results/mapped_reads/colobus/merged_reads", pattern = "*.bam$", full.names=TRUE)
 gtf.file = "genomes/combined.gtf"
 colobusfc = featureCounts(bams, annot.ext=gtf.file,
     isGTFAnnotationFile=TRUE,
@@ -123,23 +123,24 @@ BiocManager::install("Rsubread")
 
 library(Rsubread)
 
-bams = list.files(path = "results/mapped_reads/plasmodium", pattern = "*.bam$", full.names=TRUE)
+bams = list.files(path = "results/mapped_reads/plasmodium/merged_reads", pattern = "*.bam$", full.names=TRUE)
 gtf.file = "genomes/combined.gtf"
-fc = featureCounts(bams, annot.ext=gtf.file,
+Hepatofc = featureCounts(bams, annot.ext=gtf.file,
+    GTF.featureType="gene",
     isGTFAnnotationFile=TRUE,
     isPairedEnd=TRUE,
     nthreads=8,
-    allowMultiOverlap=TRUE)
+    allowMultiOverlap=FALSE)
 
-save.image("Plasfc.Rdata")
+save.image("Hepatofc.Rdata")
 ```
-  * As file is running, create percent_parasitemia table in excel (enter Plasmodium_Reads_Mapped):
+  * As file is running, create percent_parasitemia table in excel (enter Hepatocystis_Reads_Mapped):
  > Plasmodium_Reads_Mapped = "Successfully assigned alignments"
  
   * Calculate Total_Reads:
- > Total_Reads = sum(Colobus_Reads_Mapped, Plasmodium_Reads_Mapped)
+ > Total_Reads = sum(Colobus_Reads_Mapped, Hepatocystis_Reads_Mapped)
   * Calculate Percent Parasitemia:
- > Percent Parasitemia = Plasmodium_Reads_Mapped / Total_Reads
+ > Percent Parasitemia = Hepatocystis_Reads_Mapped / Total_Reads
  
  ## Find DE genes associated with parasitemia
  > Necessary module(s): r/intel/3.6.0
