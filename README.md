@@ -154,6 +154,8 @@ Rscript scripts/find_DE_host_genes.R
  > Necessary module(s): r/intel/3.6.0
  
  > Necessary R package(s): Seurat, limma, Biobase, reshape2, bseqsc, xbioc, ggplot2, tidyr
+ 
+ > Necessary Files: phenotype_data.csv, single_cell_gene_matrix.csv, genehepato.ind.fc.Rdata (all available in data_files)
  ```bash
  module load r/intel/3.6.0
  Rscript script/deconvolution.R
