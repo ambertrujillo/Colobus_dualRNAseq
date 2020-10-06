@@ -30,6 +30,11 @@ fc = hepato.ind.fc
 # Show number of genes and individuals
 # dim(fc$counts)
 
+# Get median and range of reads mapping to colobus
+cat(paste("Median per-individual colobus reads:", median(colSums(fc$counts))), "\n")
+cat("Range  per-individual colobus reads:", "\n")
+cat(range(colSums(fc$counts)), "\n")
+
 # --- Calculate parasitemia proxy
 
 # From Google Sheet. Download > CSV for sheet "Merged file read counts"
@@ -200,7 +205,7 @@ do.host.de.analysis = function(in.counts, in.annotation, parasitemia.colname, su
         file=paste0("reports/edgeR_colobus_bg_genes.", suffix, ".txt"),
         sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
 
-    # --- Make Table for paper of sig up-reg genes
+    # --- Make table for paper of sig up-reg genes
 
     sig.up.reg.tbl = tt$table[tt$table$FDR < 0.05 & tt$table$logFC > 0, c(1,7,10:11)]
 
@@ -215,7 +220,7 @@ do.host.de.analysis = function(in.counts, in.annotation, parasitemia.colname, su
     write.table(sig.reg.tbl, paste0("reports/sig_reg_genes.", suffix, ".txt"),
         quote=FALSE, row.names=FALSE)
 
-    # --- Make Table of all genes
+    # --- Make table of all genes
 
     full.reg.tbl = tt$table[, c(1,7,10:11)]
 
@@ -315,7 +320,12 @@ do.host.de.analysis = function(in.counts, in.annotation, parasitemia.colname, su
 
     # --- Get DE p-values for blood disorder genes
 
-    sig.blood.genes = c("RHAG", "SPTA1", "KLF1", "ABCB6", "SLC4A1")
+    # All 3: Stomatocytosis, Poikilocytosis, Reticulocytosis
+    sig.blood.genes = c("RHAG", "SPTA1", "SLC4A1", "ABCB6", "SLC2A1")
+    # Only Reticulocytosis
+    sig.blood.genes = c(sig.blood.genes, "KLF1")
+    # Only Poikilocytosis
+    sig.blood.genes = c(sig.blood.genes, "STEAP3", "JAK2")
 
     blood.gene.info = tt$table[row.names(tt$table) %in% sig.blood.genes, c(1,7,10:11)]
     write.table(blood.gene.info, file=paste0("reports/blood_gene_info.", suffix, ".txt"))
