@@ -178,3 +178,5 @@ names(tt.inter) = colnames(design.inter)[-c(1)]
 
 tt.inter.m = do.call(rbind, tt.inter)
 table(tt.inter.m[tt.inter.m$FDR < 0.1,]$cell.component)
+
+save.image("after_cell_comp_DE.Rdata")
