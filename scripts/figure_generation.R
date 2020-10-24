@@ -1,86 +1,215 @@
 #!/usr/bin/env Rscript
 
-# Load Rdata object
+library(ggplot2)
 
-hepato=data.frame(Sample_name = parasitemia$Sample_name, hepato_reads = parasitemia$Aunin_hep_ct, colobus_reads = parasitemia$Colobus_Reads_Mapped_Hepatocystis_mapping)
+# Load Rdata object
+load("after_DE_analysis.Aunin_med.Rdata")
+
+#--> Scatter Plot of parasitemia
+
+hepato = data.frame(Sample_name   = parasitemia$Sample_name,
+                    hepato_reads  = parasitemia$Aunin_hep_ct,
+                    colobus_reads = parasitemia$Colobus_Reads_Mapped_Hepatocystis_mapping)
 hepato$col_hunthou = hepato$colobus_reads / 100000
 hepato$hep_per_hunthoucol = hepato$hepato_reads / hepato$col_hunthou
 
+p = ggplot(hepato, aes(x=Sample_name, y=hep_per_hunthoucol)) +
+        geom_point() +
+        theme_bw() +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+        xlab("Sample Name") +
+        ylab("Hepatocystis Reads per 100,000 Colobus Reads")
 
-#--> Scatter Plot of parasitemia
-ggplot(hepato, aes(x=Sample_name, y=hep_per_hunthoucol)) +
-  geom_point() +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
-  xlab("Sample Name") +
-  ylab("Hepatocystis Reads/100,000 Colobus Reads")
-  
-#--> Volcano Plot
-cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+hepato$total_reads = hepato$hepato_reads + hepato$colobus_reads
 
-sig.heat_ctl = tt[["table"]][abs(log10(tt[["table"]]$FDR)) > 50,]
+hepato.l = rbind(data.frame(Sample_name = as.character(hepato$Sample_name),
+                            Reads = as.numeric(hepato$hepato_reads),
+                            read_type="Hepato"),
+                 data.frame(Sample_name = as.character(hepato$Sample_name),
+                            Reads = as.numeric(hepato$colobus_reads),
+                            read_type="Colobus"))
 
-ttnew = data.frame(tt[["table"]])
+hepato.l$Sample_name = factor(hepato.l$Sample_name,
+    levels = hepato$Sample_name[order(-1 * hepato$total_reads)])
 
-library(stringr)
-ttnew = subset(ttnew, str_sub(ttnew$GeneID,1,3) != "LOC")
+hepato.l$read_type = factor(hepato.l$read_type, levels=c("Colobus", "Hepato"))
 
-for (i in 1:length(ttnew$GeneID)){
-  if(abs(ttnew$logFC[i])>2 && abs(-log10(ttnew$FDR[i]))>1) {ttnew$color[i] = "blue"} else if (abs(ttnew$logFC[i])>2) {ttnew$color[i] = "black"} else if (abs(-log10(ttnew$FDR[i]))>1) {ttnew$color[i] = "red"} else {ttnew$color[i] = "gray"}}
+p = ggplot(hepato.l, aes(fill=read_type, y=Reads / 10^6, x=Sample_name)) +
+    geom_bar(position="stack", stat="identity") +
+    xlab("Blood Sample") +
+    ylab("Uniquely Mapped Sequencing Read Count (10^6)") +
+    ylab(expression(paste("Uniquely Mapped Sequencing Read Count (", 10^6, ")"))) +
+    scale_fill_manual(values = c("#CC0033", "black"),  # "#5F6A72"
+                      breaks = c("Colobus", "Hepato"),
+                      labels = c("Red Colobus Monkey", "Hepatocystis")) +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          legend.position = c(0.78, 0.93),
+          legend.title = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.key.size = unit(0.3, "cm"))
 
-genesnow = c("UBE2K", "LSM14A", "PP2D1", "APOBEC2", "ACKR1")
-for (i in 1:length(ttnew$GeneID)){
-  if(ttnew$GeneID[i] %in% genesnow) {ttnew$Name[i] = ttnew$GeneID[i]} else {ttnew$Name[i] = ""}}
+ggsave(p, file="reports/parasitemia_barplot.pdf",
+    height=4, width=4)
 
-bloodgenes = c("RHAG","SPTA1","KLF1","ABCB6","SLC4A1", "SLC2A1", "STEAP3", "JAK2")
-for (i in 1:length(ttnew$GeneID)){
-  if(ttnew$GeneID[i] %in% bloodgenes) {ttnew$shape[i] = "2"} else {ttnew$shape[i] = "19"}
-}
-                
-p = ggplot(ttnew,
-           aes(logFC, -log10(FDR),
-               size  = -log10(FDR))) +
-  geom_point(aes(logFC, -log10(FDR), color = color, shape = shape), size=2) +
-  ggrepel::geom_text_repel(data=ttnew, aes(label = Name), size = 5, color="black", force = 10, min.segment.length = 0) +
-  xlab("Fold Change") +
-  ylab("-log10(adjusted p-value)") +
-  theme_classic() +
-  theme(legend.position = "none") +
-  scale_colour_manual(values = c("black", "blue", "grey", "red")) +
-  scale_shape_manual(values = c(19, 8))
-    
-p
+#--> Cell type proportions against parasitemia
 
-#--> Plot genes of interest against parasitemia
-# After running DE analysis
-# --- Plot genes of interest
-  
-  plot.gene.expr = function(gene.name) {
-    
+rm(list=ls())
+load("after_cell_comp_DE.Rdata")
+
+# Monocytes
+
+p = ggplot(parasitemia.immune, aes(parasitemia.proxy, Monocytes)) +
+        geom_smooth(method="lm", se=FALSE, col="#4D0000", lwd=0.25) +
+        geom_point(col="#CC0033") +
+        xlab("Parasitemia Proxy") +
+        ylab("Monocyte Proportion") +
+        theme_bw() +
+        theme(panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.border = element_blank(),
+              axis.line = element_line(color = "#4D0000"),
+              axis.text.x = element_text(color = "grey45"),
+              axis.text.y = element_text(color = "grey45"))
+
+ggsave(p, file="reports/fancy_cell_type_prop_by_parasitemia.Monocytes.pdf",
+    height=2.5, width=2.5)
+
+# Neutrophils
+
+p = ggplot(parasitemia.immune, aes(parasitemia.proxy, Neutrophils)) +
+        geom_smooth(method="lm", se=FALSE, col="#4D0000", lwd=0.25) +
+        geom_point(col="#CC0033") +
+        xlab("Parasitemia Proxy") +
+        ylab("Neutrophil Proportion") +
+        theme_bw() +
+        theme(panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.border = element_blank(),
+              axis.line = element_line(color = "#4D0000"),
+              axis.text.x = element_text(color = "grey45"),
+              axis.text.y = element_text(color = "grey45"))
+
+ggsave(p, file="reports/fancy_cell_type_prop_by_parasitemia.Neutrophils.pdf",
+    height=2.5, width=2.5)
+
+#--> Expression of genes of interest by parasitemia
+
+rm(list=ls())
+load("after_DE_analysis.Aunin_med.Rdata")
+
+library(edgeR)
+
+fc.dge = DGEList(counts = fc$counts, genes = fc$annotation)
+keep = (rowSums(cpm(fc.dge) > 5) >= 4)
+fc.dge = fc.dge[keep, , keep.lib.sizes=FALSE]
+fc.dge.norm  = calcNormFactors(fc.dge)
+
+parasitemia$parasitemia.proxy = parasitemia$parasitemia.proxy.aunin_med
+
+design = model.matrix(~ parasitemia.proxy, data=parasitemia)
+disp = estimateDisp(fc.dge.norm, design, robust = TRUE)
+cpm.disp = cpm(disp)
+
+plot.gene.expr = function(gene.name) {
     cpm.disp.gene_of_interest = cpm.disp[row.names(cpm.disp) == gene.name,]
     ct = data.frame(counts      = cpm.disp.gene_of_interest,
                     parasitemia = parasitemia$parasitemia.proxy.aunin_med)
-    
+
+    # Remove outlier in ACKR1
+    if (gene.name == "ACKR1") {
+        ct = ct[ct$counts < 30,]
+    }
+
     p = ggplot(ct, aes(parasitemia, counts)) +
-      geom_point() +
-      geom_smooth(method="lm") +
-      xlab("Inferred parasitemia proxy") +
-      ylab("Normalized count per million reads") +
-      theme_bw()
-    ggsave(p, file=paste0("reports/cpm_by_parasitemia.", gene.name, ".", suffix= "pdf"))
-  }
-  
-  lapply(c("ACKR1", "UBE2K", "LSM14A", "APOBEC2", "PP2D1"), plot.gene.expr)
+            geom_smooth(method="lm", se=FALSE, col="#4D0000", lwd=0.25) +
+            geom_point(pch=21, fill="#CC0033", col="black") +
+            ggtitle(bquote(paste(italic(.(gene.name))))) +
+            xlab("Parasitemia Proxy") +
+            ylab("Normalized count per million reads") +
+            theme_bw() +
+            theme(panel.grid.major = element_blank(),
+                  panel.grid.minor = element_blank(),
+                  panel.border = element_blank(),
+                  axis.line = element_line(color = "#4D0000"),
+                  axis.text.x = element_text(color = "grey45"),
+                  axis.text.y = element_text(color = "grey45"))
 
-#-> Bar plot with side by side counts
-attach(hepato)
-stacked_hepato = rbind(data.frame(Sample_name,"count" = colobus_reads, "Species" = "Colobus"),
-                      data.frame(Sample_name,"count" = hepato_reads, "Species" = "Hepatocystis"))
+    ggsave(p, file=paste0("reports/cpm_by_parasitemia.", gene.name, ".Aunin_med.pdf"),
+        height=2.5, width=2.5)
+}
 
-ggplot(stacked_hepato, aes(x=Sample_name, y=count, fill=Species)) +
-  geom_bar(stat='identity', position='dodge', color="black") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
-  scale_fill_manual(values=c("#999999", "#E69F00")) +
-  xlab("Sample Name") +
-  ylab("Total Read Count")
+lapply(c("ACKR1",
+         "UBE2K", "PP2D1", "TMEM167A", "LSM14A",
+         "UBE2B", "TTLL12", "AGFG1", "APOBEC2"), plot.gene.expr)
+
+#--> Volcano Plot
+
+rm(list=ls())
+load("after_DE_analysis.Aunin_med.Rdata")
+
+library(edgeR)
+library(ggrepel)
+
+fc.dge = DGEList(counts = fc$counts, genes = fc$annotation)
+keep = (rowSums(cpm(fc.dge) > 5) >= 4)
+fc.dge = fc.dge[keep, , keep.lib.sizes=FALSE]
+fc.dge.norm  = calcNormFactors(fc.dge)
+
+parasitemia$parasitemia.proxy = parasitemia$parasitemia.proxy.aunin_med
+
+design = model.matrix(~ parasitemia.proxy, data=parasitemia)
+disp = estimateDisp(fc.dge.norm, design, robust = TRUE)
+cpm.disp = cpm(disp)
+
+fit = glmQLFit(disp, design, robust = TRUE)
+qlf = glmQLFTest(fit, coef = "parasitemia.proxy")
+tt  = topTags(qlf, n=Inf, adjust.method = "BH", p.value = 1)
+
+# Remove outlier
+tt$table = tt$table[abs(tt$table$logFC) < 20,]
+
+# Remove LOC genes
+tt$table = tt$table[!grepl("^LOC", tt$table$GeneID),]
+
+bloodgenes = c("RHAG", "SPTA1", "KLF1", "ABCB6",
+               "SLC4A1", "SLC2A1", "STEAP3", "JAK2")
+
+p = ggplot(tt$table, aes(logFC, -log10(FDR), col=abs(logFC))) +
+    geom_point(size=0.5) +
+    geom_text_repel(data=tt$table[tt$table$FDR < 0.05 & tt$table$logFC > 0,],
+        aes(label = GeneID), size = 2, color="black",
+        force = 10, min.segment.length = 0,
+        segment.size=0.1,
+        nudge_x=3, nudge_y=0.25) +
+    geom_text_repel(data=tt$table[tt$table$FDR < 0.05 & tt$table$logFC < 0,],
+        aes(label = GeneID), size = 2, color="black",
+        force = 10, min.segment.length = 0,
+        segment.size=0.1,
+        nudge_x=-3, nudge_y=0.25) +
+    geom_point(data=tt$table[tt$table$FDR < 0.05,],
+        aes(logFC, -log10(FDR)), pch=21, fill="#CC0033", size=1.5) +
+    geom_point(data=tt$table[tt$table$GeneID %in% bloodgenes,],
+        aes(logFC, -log10(FDR)), pch=23, col="#4D0000", fill="white", size=1.5) +
+    xlab(expression(paste(log[2], "(Fold Change)"))) +
+    ylab(expression(paste(-log[10], "(FDR)"))) +
+    xlim(c(-20,20)) +
+    ylim(c(0, 2.25)) +
+    scale_color_gradient(
+        low = "grey25",
+        high = "grey40",
+    ) +
+    theme_bw() +
+    theme(legend.position = "none",
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          axis.line = element_line(color = "#4D0000"),
+          axis.text.x = element_text(color = "grey45"),
+          axis.text.y = element_text(color = "grey45"))
+
+ggsave(p, file="reports/volcano_Aunin_med.pdf",
+    height=3, width=4)
