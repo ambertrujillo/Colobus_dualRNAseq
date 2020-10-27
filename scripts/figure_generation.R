@@ -41,7 +41,7 @@ p = ggplot(hepato.l, aes(fill=read_type, y=Reads / 10^6, x=Sample_name)) +
     ylab(expression(paste("Uniquely Mapped Sequencing Read Count (", 10^6, ")"))) +
     scale_fill_manual(values = c("#CC0033", "black"),  # "#5F6A72"
                       breaks = c("Colobus", "Hepato"),
-                      labels = c("Red Colobus Monkey", "Hepatocystis")) +
+                      labels = c("Red Colobus Monkey", expression(italic("Hepatocystis")))) +
     theme_bw() +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
@@ -50,7 +50,8 @@ p = ggplot(hepato.l, aes(fill=read_type, y=Reads / 10^6, x=Sample_name)) +
           legend.title = element_blank(),
           axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
-          legend.key.size = unit(0.3, "cm"))
+          legend.key.size = unit(0.3, "cm"),
+          legend.text.align = 0)
 
 ggsave(p, file="reports/parasitemia_barplot.pdf",
     height=4, width=4)
