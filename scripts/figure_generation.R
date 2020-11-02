@@ -5,7 +5,9 @@ library(ggplot2)
 # install.packages("ggpubr")
 library(ggpubr)
 
-#--> Scatter Plot of parasitemia
+library(xtable)
+
+#--> Scatter plot of parasitemia
 
 # Load Rdata object
 load("after_DE_analysis.Aunin_med.Rdata")
@@ -174,7 +176,6 @@ ggsave(p.all, file="reports/cpm_by_parasitemia.up.Aunin_med.pdf",
     height=4, width=8)
 
 # Plot down-regulated genes
-
 dn.genes = c("NAGA", "TBC1D9B", "ZNF682")
 
 expr.plots.dn = lapply(dn.genes, plot.gene.expr)
@@ -267,3 +268,69 @@ p = ggplot(tt$table, aes(logFC, -log10(FDR), col=abs(logFC))) +
 
 ggsave(p, file="reports/volcano_Aunin_med.pdf",
     height=3, width=4)
+
+#--> Nice table of top DE genes
+
+rm(list=ls())
+load("after_DE_analysis.Aunin_med.Rdata")
+
+library(edgeR)
+library(ggrepel)
+
+fc.dge = DGEList(counts = fc$counts, genes = fc$annotation)
+keep = (rowSums(cpm(fc.dge) > 5) >= 4)
+fc.dge = fc.dge[keep, , keep.lib.sizes=FALSE]
+fc.dge.norm  = calcNormFactors(fc.dge)
+
+parasitemia$parasitemia.proxy = parasitemia$parasitemia.proxy.aunin_med
+
+design = model.matrix(~ parasitemia.proxy, data=parasitemia)
+disp = estimateDisp(fc.dge.norm, design, robust = TRUE)
+cpm.disp = cpm(disp)
+
+fit = glmQLFit(disp, design, robust = TRUE)
+qlf = glmQLFTest(fit, coef = "parasitemia.proxy")
+tt  = topTags(qlf, n=Inf, adjust.method = "BH", p.value = 1)
+
+# Remove outlier
+tt$table = tt$table[abs(tt$table$logFC) < 20,]
+
+# Remove LOC genes
+tt$table = tt$table[!grepl("^LOC", tt$table$GeneID),]
+
+# Write LaTeX table
+
+to.print = tt$table[tt$table$FDR <= 0.05, c(1,7,10:11)]
+
+to.print = to.print[order(to.print$logFC < 1, to.print$FDR),]
+names(to.print) = c("Gene", "$\\log_{2}$FC", "$p$-value", "adj. $p$-value")
+
+to.print$Gene = paste0("\\emph{", to.print$Gene, "}")
+to.print[,3] = sanitize.numbers(format(to.print[,3], scientific = TRUE, digits=3),
+                 type = "latex", math.style.exponents = TRUE)
+
+xt = xtable(to.print, digits=c(0, 0, 2, 0, 4))
+
+out.file = "reports/top_DE_genes_table.tex"
+
+sink(out.file)
+
+cat("\\documentclass[a4paper,landscape]{article}",
+    "\\usepackage{graphicx}",
+    "\\usepackage{longtable}",
+    "\\DeclareGraphicsExtensions{.pdf}",
+    "\\usepackage[top=0.5in, bottom=0.5in, left=0.5in, right=0.5in]{geometry}",
+    "\\usepackage{caption}",
+    "\\captionsetup[table]{labelformat=empty}",
+    "\\begin{document}", sep="\n")
+
+print.xtable(xt,
+        display = c("s","f","s","f"),
+        include.rownames = FALSE,
+        sanitize.text.function = function(x){x},
+        caption.placement = "top",
+        hline.after = c(-1, 0, sum(to.print[,2] > 0), nrow(to.print)))
+
+cat("\\end{document}", sep="\n")
+
+sink()
