@@ -2,10 +2,13 @@
 
 library(ggplot2)
 
-# Load Rdata object
-load("after_DE_analysis.Aunin_med.Rdata")
+# install.packages("ggpubr")
+library(ggpubr)
 
 #--> Scatter Plot of parasitemia
+
+# Load Rdata object
+load("after_DE_analysis.Aunin_med.Rdata")
 
 hepato = data.frame(Sample_name   = parasitemia$Sample_name,
                     hepato_reads  = parasitemia$Aunin_hep_ct,
@@ -130,7 +133,7 @@ plot.gene.expr = function(gene.name) {
             geom_point(pch=21, fill="#CC0033", col="black") +
             ggtitle(bquote(paste(italic(.(gene.name))))) +
             xlab("Parasitemia Proxy") +
-            ylab("Normalized count per million reads") +
+            ylab("Gene expression\nNormalized count per million reads") +
             theme_bw() +
             theme(panel.grid.major = element_blank(),
                   panel.grid.minor = element_blank(),
@@ -141,11 +144,56 @@ plot.gene.expr = function(gene.name) {
 
     ggsave(p, file=paste0("reports/cpm_by_parasitemia.", gene.name, ".Aunin_med.pdf"),
         height=2.5, width=2.5)
+
+    p
 }
 
-lapply(c("ACKR1",
-         "UBE2K", "PP2D1", "TMEM167A", "LSM14A",
-         "UBE2B", "TTLL12", "AGFG1", "APOBEC2"), plot.gene.expr)
+# Plot ACKR1
+expr.plots.ackr1 = lapply(c("ACKR1"), plot.gene.expr)
+
+# Plot up-regulated genes
+up.genes = c("UBE2K", "PP2D1", "TMEM167A", "LSM14A",
+             "UBE2B", "TTLL12", "AGFG1", "APOBEC2")
+
+expr.plots.up = lapply(up.genes, plot.gene.expr)
+
+names(expr.plots.up) = up.genes
+
+expr.plots.up = lapply(expr.plots.up, function (x) { x = x + rremove("xy.title") })
+
+p.all = ggarrange(plotlist = expr.plots.up,
+    ncol = 4, nrow = 2)
+
+p.all = annotate_figure(p.all,
+                bottom = text_grob("Parasitemia Proxy"),
+                left = text_grob("Gene expression\n(Normalized count per million reads)",
+                    rot = 90)
+                )
+
+ggsave(p.all, file="reports/cpm_by_parasitemia.up.Aunin_med.pdf",
+    height=4, width=8)
+
+# Plot down-regulated genes
+
+dn.genes = c("NAGA", "TBC1D9B", "ZNF682")
+
+expr.plots.dn = lapply(dn.genes, plot.gene.expr)
+
+names(expr.plots.dn) = dn.genes
+
+expr.plots.dn = lapply(expr.plots.dn, function (x) { x = x + rremove("xy.title") })
+
+p.all = ggarrange(plotlist = expr.plots.dn,
+    ncol = 3, nrow = 1)
+
+p.all = annotate_figure(p.all,
+                bottom = text_grob("Parasitemia Proxy"),
+                left = text_grob("Gene expression\n(Normalized count\nper million reads)",
+                    rot = 90)
+                )
+
+ggsave(p.all, file="reports/cpm_by_parasitemia.down.Aunin_med.pdf",
+    height=2.1, width=6.4)
 
 #--> Volcano Plot
 
@@ -186,6 +234,11 @@ p = ggplot(tt$table, aes(logFC, -log10(FDR), col=abs(logFC))) +
         force = 10, min.segment.length = 0,
         segment.size=0.1,
         nudge_x=3, nudge_y=0.25) +
+    geom_text_repel(data=tt$table[tt$table$GeneID == "ACKR1",],
+        aes(label = GeneID), size = 2, color="black",
+        force = 10, min.segment.length = 0,
+        segment.size=0.1,
+        nudge_x=1, nudge_y=0.25) +
     geom_text_repel(data=tt$table[tt$table$FDR < 0.05 & tt$table$logFC < 0,],
         aes(label = GeneID), size = 2, color="black",
         force = 10, min.segment.length = 0,
