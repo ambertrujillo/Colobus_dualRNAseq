@@ -160,7 +160,7 @@ Rscript scripts/find_DE_host_genes.R
  module load r/intel/3.6.0
  Rscript script/deconvolution.R
  ```
-## Correlate * _Hepatocystis sp._ Life Stage and Colobus Immune Cell Type
+## Correlate _Hepatocystis sp._ Life Stage and Colobus Immune Cell Type
 > Necessary R package(s): Hmisc
 ```bash
 module load r/intel/3.6.0
