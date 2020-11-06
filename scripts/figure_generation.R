@@ -7,6 +7,8 @@ library(ggpubr)
 
 library(xtable)
 
+library(plyr)
+
 #--> Scatter plot of parasitemia
 
 # Load Rdata object
@@ -334,3 +336,112 @@ print.xtable(xt,
 cat("\\end{document}", sep="\n")
 
 sink()
+
+#--> Nice table of top GO/HP terms
+
+rm(list=ls())
+
+hp.up  = read.table("reports/GO_HP_overrep.upreg.Aunin_med.txt", header=TRUE)
+hp.up$term_name = paste0(hp.up$term_name, " (", hp.up$term_id, ")")
+hp.up$group = "Human Phenotypes"
+
+hp.up$logp = -1 * log(hp.up$p_value, base=10)
+hp.up = hp.up[order(-1 * hp.up$logp),]
+hp.up$major.group = "HP"
+
+mal.up = read.table("reports/malaria_GMT_overrep.upreg.Aunin_med.txt")
+names(mal.up) = c("term_name", "p_value")
+mal.up$group = c(rep("Malaria\nResponse\nGenes", 5), rep("Heme/\nErythrocyte\nGenes", 4))
+
+mal.up$term_name[mal.up$term_name == "HALLMARK_HEME_METABOLISM"] =
+    "Erythroblast differentiation and heme metabolism"
+mal.up$term_name[mal.up$term_name == "REACTOME_ERYTHROCYTES_TAKE_UP_OXYGEN_AND_RELEASE_CARBON_DIOXIDE"] =
+    "Erythrocyte uptake of O2 and release of CO2"
+mal.up$term_name[mal.up$term_name == "REACTOME_ERYTHROCYTES_TAKE_UP_CARBON_DIOXIDE_AND_RELEASE_OXYGEN"] =
+    "Erythrocyte uptake of CO2 and release of O2"
+mal.up$term_name[mal.up$term_name == "STEINER_ERYTHROCYTE_MEMBRANE_GENES"] =
+    "Erythrocyte membrane proteins"
+
+mal.up$term_name[mal.up$term_name == "CTD_GENE_DISEASE_ASSOC_MALARIA"] =
+    "Curated gene-malaria association"
+mal.up$term_name[mal.up$term_name == "DISEASE_TEXTMINING_MALARIA"] =
+    "Text mining of biomedical abstracts"
+mal.up$term_name[mal.up$term_name == "GAD_GENE_DISEASE_MALARIA"] =
+    "GWAS associations"
+
+mal.up$term_name[mal.up$term_name == "EBEL_ETAL_PPIPS"] =
+    "Plasmodium and other apicomplexan-associated genes"
+mal.up$term_name[mal.up$term_name == "EBEL_ETAL_PPIPS_HUMAN"] =
+    "Plasmodium and other apicomplexan-associated genes (humans)"
+
+mal.up$major.group = "mal"
+
+mal.up$logp = -1 * log(mal.up$p_value, base=10)
+mal.up = mal.up[order(mal.up$group, -1 * mal.up$logp),]
+
+all.up = rbind.fill(hp.up, mal.up)
+all.up$group = factor(all.up$group,
+    levels = c("Human Phenotypes", "Malaria\nResponse\nGenes", "Heme/\nErythrocyte\nGenes"))
+
+labs = as.character(all.up$term_name)
+labs = sapply(labs, function (x){
+    x = gsub("Plasmodium", "italic(Plasmodium)", x)
+    x = gsub(" ", "~", x)
+    x = gsub("apicomplexan-associated", "{'apicomplexan-associated'}", x)
+    x = gsub("gene-malaria", "{'gene-malaria'}", x)
+    x = gsub("(HP:[0-9]+)", "{'\\1'}", x)
+    x = gsub("O2", "O[2]", x)
+})
+labs = sapply(labs, function(x) parse(text = x))
+
+all.up$term_name = labs
+all.up$term_name = factor(all.up$term_name, levels=rev(all.up$term_name))
+
+p1 = ggplot(all.up[all.up$major.group == "HP",],
+        aes(x = logp, y = term_name, fill=-1 * logp)) +
+    geom_bar(stat='identity', col="#4D0000") +
+    facet_grid(group ~ ., scales='free') +
+    xlab(expression(paste(log[10], "(Adjusted p-value)"))) +
+    scale_fill_gradient(
+        high="white", low="#CC0033") +
+    scale_y_discrete(labels = scales::parse_format()) +
+    theme_bw() +
+    theme(axis.title.y = element_blank(),
+          legend.position = "none",
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          axis.ticks.y = element_blank(),
+          strip.background = element_rect(fill = "white")
+    )
+
+p2 = ggplot(all.up[all.up$major.group != "HP",],
+        aes(x = logp, y = term_name, fill=-1 * logp)) +
+    geom_bar(stat='identity', col="black") +
+    facet_grid(group ~ ., scales='free') +
+    xlab(expression(paste(log[10], "(Adjusted p-value)"))) +
+    scale_fill_gradient(
+        high="white", low="black") +
+    scale_y_discrete(labels = scales::parse_format()) +
+    theme_bw() +
+    theme(axis.title.y = element_blank(),
+          legend.position = "none",
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          axis.ticks.y = element_blank(),
+          strip.background = element_rect(fill = "white")
+    )
+
+blank = ggplot() + theme(panel.background = element_rect(fill = "white"))
+
+p.all = ggarrange(
+    plotlist = list(
+        ggarrange(blank, p1, blank,
+            nrow=3, heights=c(0.15, 0.7, 0.15), labels = c("", "A", "")),
+        p2),
+    ncol = 2, nrow = 1,
+    labels = c("", "B"))
+
+ggsave(p.all, file="reports/functional_enrichment_barplots.pdf",
+    height=2.5, width=12, bg="white")
