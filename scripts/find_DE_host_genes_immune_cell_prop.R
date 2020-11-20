@@ -19,6 +19,8 @@ library(xtable)
 
 library(gprofiler2)
 
+library(ggrepel)
+
 library("GO.db")
 
 # --- Load variables from simple DE analysis
@@ -71,13 +73,20 @@ write.table(cor.test.res.simp, file="reports/immune_cell_component_parasitemia_c
 tmp = lapply(cell.types, function (cell.type) {
 
     p = ggplot(parasitemia.immune, aes_string("parasitemia.proxy", cell.type)) +
-            geom_point() +
-            geom_smooth(method="lm") +
-            xlab("Inferred parasitemia") +
-            ylab(paste("Immune cell type proportion: ", cell.type)) +
-            theme_bw()
-    ggsave(p, file=paste0("reports/cell_type_prop_by_parasitemia.", cell.type, ".pdf"))
+            geom_smooth(method="lm", se=FALSE, col="#4D0000", lwd=0.25) +
+            geom_point(col="#CC0033") +
+            xlab("Parasitemia Proxy") +
+            ylab(paste("Proportion: ", cell.type)) +
+            theme_bw() +
+            theme(panel.grid.major = element_blank(),
+                  panel.grid.minor = element_blank(),
+                  panel.border = element_blank(),
+                  axis.line = element_line(color = "#4D0000"),
+                  axis.text.x = element_text(color = "grey45"),
+                  axis.text.y = element_text(color = "grey45"))
 
+    ggsave(p, file=paste0("reports/cell_type_prop_by_parasitemia.", cell.type, ".pdf"),
+        height=2.5, width=2.5)
 })
 
 # --- Normalize and remove low count genes
@@ -143,9 +152,41 @@ simple.model.sig.genes = read.table("reports/sig_reg_genes.Aunin_med.txt",
 simp.and.complex.model.res = merge(simple.model.sig.genes, tt.cc[[1]],
     by="GeneID", suffixes=c(".simplemodel", ".wcellcomp"), sort=FALSE)
 
+toprint = simp.and.complex.model.res[
+    order(simp.and.complex.model.res$PValue.wcellcomp),
+    c("GeneID", "logFC.wcellcomp", "PValue.wcellcomp", "FDR.wcellcomp",
+        "PValue.simplemodel", "FDR.simplemodel")]
+write.table(toprint,
+    file="results/sig_DE_genes.w_cell_comp.parasitemia_and_simple_model_res.txt",
+    sep="\t", row.names=FALSE)
+
+p = ggplot(toprint,
+        aes(-1 * log(PValue.simplemodel, base=2), -1 * log(PValue.wcellcomp, base=2),
+            col=FDR.simplemodel < 0.05)) +
+    geom_point() +
+    geom_text_repel(data=toprint[toprint$FDR.simplemodel < 0.05 |
+                                 toprint$FDR.wcellcomp   < 0.05,],
+        aes(-1 * log(PValue.simplemodel, base=2), -1 * log(PValue.wcellcomp, base=2),
+        label=GeneID)) +
+    xlab(expression(paste("-", log[2], "(P-value) - Simple Model"))) +
+    ylab(expression(paste("-", log[2], "(P-value) - Model w/ Cell Composition"))) +
+    scale_color_manual(values = c("black", "#CC0033")) +
+    theme_bw() +
+    theme(legend.position = "none",
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          axis.line = element_line(color = "#4D0000"),
+          axis.text.x = element_text(color = "grey45"),
+          axis.text.y = element_text(color = "grey45"))
+ggsave(p, file="reports/cell_comp_vs_simple_de_model_results.pdf")
+
 top.DE.genes = simp.and.complex.model.res[
     simp.and.complex.model.res$PValue.simplemodel < 0.0001,
 ]
+# Remove LOC genes
+top.DE.genes = top.DE.genes[grepl("^LOC", top.DE.genes$GeneID) == FALSE,]
+
 table(top.DE.genes$PValue.wcellcomp < 0.0001)
 table(top.DE.genes$PValue.wcellcomp < 0.001)
 table(top.DE.genes$PValue.wcellcomp < 0.01)

@@ -110,6 +110,23 @@ p = ggplot(parasitemia, aes(Colobus_Reads_Mapped_Plasmodium_mapping, Colobus_Rea
     geom_abline(intercept=0, slope=1)
 ggsave(p, file="reports/colobus_reads_raw_count_per_ind_hepato_vs_plasmo.pdf")
 
+# --- Print parasitemia table for supplement
+
+para.toprint = parasitemia[,c("Sample_name", "BioSample", "Sex",
+    "Colobus_Reads_Mapped_Hepatocystis_mapping", "Hepatocystis_Reads_Mapped",
+    "parasitemia.proxy.ours",
+    "Aunin_hep_ct", "Aunin_hep_med",
+    "parasitemia.proxy.aunin_med")]
+
+names(para.toprint) = c("Sample_name", "BioSample", "Sex",
+    "Colobus_reads_mapped", "Hepatocystis_Reads_Mapped",
+    "Parasitemia_proxy.ours",
+    "Hepatocystis_Reads_Mapped_Aunin", "Hepatocystis_Reads_Mapped_mid50_Aunin",
+    "Parasitemia_proxy.Aunin")
+
+write.table(para.toprint, file="reports/parasitemia_table.txt",
+    sep="\t", quote=FALSE)
+
 # --- Compare our read counts to published ones: total reads per Hepato gene
 
 load("data/Hepato_mapping.Hepato.gene.fc.Rdata")

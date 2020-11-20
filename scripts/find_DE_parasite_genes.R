@@ -134,4 +134,42 @@ lapply(c("HEP_00087700", "HEP_00401500", "HEP_00477000",
          "HEP_00319200", "HEP_00421400", "HEP_00390600",
          "HEP_00097800"), plot.gene.expr)
 
+# --- Make volcano plot
+
+keygenes = c("HEP_00087700", "HEP_00401500", "HEP_00477000",
+             "HEP_00319200", "HEP_00421400", "HEP_00390600",
+             "HEP_00097800")
+
+p = ggplot(tt$table, aes(logFC, -log10(PValue), col=abs(logFC))) +
+    geom_point(size=0.5) +
+    geom_text_repel(data=tt$table[tt$table$GeneID %in% keygenes & tt$table$logFC > 0,],
+        aes(label = GeneID), size = 2, color="black",
+        force = 10, min.segment.length = 0,
+        segment.size=0.1,
+        nudge_x=300, nudge_y=0.25) +
+    geom_text_repel(data=tt$table[tt$table$GeneID %in% keygenes & tt$table$logFC < 0,],
+        aes(label = GeneID), size = 2, color="black",
+        force = 10, min.segment.length = 0,
+        segment.size=0.1,
+        nudge_x=-300, nudge_y=0.25) +
+    geom_point(data=tt$table[tt$table$PValue < 0.05,],
+        aes(logFC, -log10(PValue)), pch=21, fill="#CC0033", size=1.5) +
+    xlab(expression(paste(log[2], "(Fold Change)"))) +
+    ylab(expression(paste(-log[10], "(unadj. p-value)"))) +
+    scale_color_gradient(
+        low = "grey25",
+        high = "grey40",
+    ) +
+    theme_bw() +
+    theme(legend.position = "none",
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          axis.line = element_line(color = "#4D0000"),
+          axis.text.x = element_text(color = "grey45"),
+          axis.text.y = element_text(color = "grey45"))
+
+ggsave(p, file="reports/volcano_Hepato_genes.pdf",
+    height=3, width=4)
+
 save.image("after_DE_analysis_parasite.Rdata")

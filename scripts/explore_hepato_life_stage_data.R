@@ -82,13 +82,19 @@ write.table(cor.test.res.simp, file="reports/hepatocystis_life_stage_parasitemia
 tmp = lapply(life.stages, function (life.stage) {
 
     p = ggplot(para.imm.high, aes_string("parasitemia.proxy", life.stage)) +
-            geom_point() +
-            geom_smooth(method="lm") +
-            xlab("Inferred parasitemia") +
-            ylab(paste("Hepatocystis life stage proportion: ", life.stage)) +
-            theme_bw()
-    ggsave(p, file=paste0("reports/life_stage_prop_by_parasitemia.", life.stage, ".pdf"))
-
+            geom_smooth(method="lm", se=FALSE, col="#4D0000", lwd=0.25) +
+            geom_point(col="#CC0033") +
+            xlab("Parasitemia Proxy") +
+            ylab(paste("Proportion: ", life.stage)) +
+            theme_bw() +
+            theme(panel.grid.major = element_blank(),
+                  panel.grid.minor = element_blank(),
+                  panel.border = element_blank(),
+                  axis.line = element_line(color = "#4D0000"),
+                  axis.text.x = element_text(color = "grey45"),
+                  axis.text.y = element_text(color = "grey45"))
+    ggsave(p, file=paste0("reports/life_stage_prop_by_parasitemia.", life.stage, ".pdf"),
+        height=2.5, width=2.5)
 })
 
 # --- Normalize and remove low count genes
