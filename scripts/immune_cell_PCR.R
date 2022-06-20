@@ -1,4 +1,3 @@
-#!/usr/bin/env Rscript
 ############## Immune cell composition PCA ############
 library(factoextra)
 
@@ -61,5 +60,5 @@ res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation 
 
 # Extract and save results
-write.table(res.var$contrib, file="Results_gene/PCA_results",
+write.table(res.var$contrib, file="edgeR_results/PCA_results",
             sep="\t", quote=FALSE, row.names=TRUE, col.names=TRUE)
