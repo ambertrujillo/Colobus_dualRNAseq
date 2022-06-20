@@ -56,7 +56,7 @@ gunzip $SCRATCH/colobus_hep/data/*TRIM_*.fastq.gz
 ```bash
 sbatch/edgeR_align_genome.sbatch
 ```
-## Obtain "Unique" Host and Pathogen Data (ARRAY JOB)
+### Obtain "Unique" Host and Pathogen Data (ARRAY JOB)
 > Necessary module(s): bamtools/intel/2.5.1, samtools/intel/1.12
 ```bash
 # Create index of reference genome
@@ -81,7 +81,7 @@ cd ../../..
 sbatch/edgeR_extract_reads.sbatch
 ```
 
-## Obtain Read Count Matrix and Calculate Percent Parasitemia
+### Obtain Read Count Matrix and Calculate Percent Parasitemia
 > Necessary module(s): r/intel/4.0.4
 
 > Necessary R package(s): BiocManager, Rsubread
@@ -136,12 +136,12 @@ save.image("hepato.fc.Rdata")
  > Total_Reads = sum(Colobus_Reads_Mapped, Hepatocystis_Reads_Mapped)
   * Calculate Percent Parasitemia:
  > Percent Parasitemia = Hepatocystis_Reads_Mapped / Total_Reads
- ## Run Immune cell composition PCA for M<sub>immune</sub> model
+ ### Run Immune cell composition PCA for M<sub>immune</sub> model
  ```bash
  module load r/intel/4.0.4
  Rscript scripts/immune_cell_PCR.R
  ```
- ## Find DE genes associated with parasitemia
+ ### Find DE genes associated with parasitemia
  > Necessary module(s):  r/intel/4.0.4
  
  > Necessary R package(s): BiocManager, edgeR, GO.db, gprofiler2
@@ -153,7 +153,7 @@ Rscript scripts/edgeR_find_DE_host_genes.R
 Rscript scripts/edgeR_find_DE_pathogen_genes.R
 ```
 5b. EMMREML pipeline
-## Align Colobus reads to concatenated Host-Pathogen Referance sequence (ARRAY JOB)
+### Align Colobus reads to concatenated Host-Pathogen Referance sequence (ARRAY JOB)
  > Necessary module(s): gcc/10.2.0, star/intel/2.7.6a
 ```bash
 mkdir EMMREML_results
@@ -161,7 +161,7 @@ mkdir EMMREML_results
 ```bash
 sbatch/EMMREML_align_genome.sbatch
 ```
-## Obtain "Unique" Host and Pathogen Data (ARRAY JOB)
+### Obtain "Unique" Host and Pathogen Data (ARRAY JOB)
 > Necessary module(s): bamtools/intel/2.5.1, samtools/intel/1.12
 ```bash
 # Create necessary results files
@@ -180,7 +180,7 @@ cd ../../..
 sbatch/EMMREML_extract_reads.sbatch
 ```
 
-## Obtain Read Count Matrix and Calculate Percent Parasitemia
+### Obtain Read Count Matrix and Calculate Percent Parasitemia
 > Necessary module(s): r/intel/4.0.4
 
 > Necessary R package(s): BiocManager, Rsubread
@@ -235,13 +235,13 @@ save.image("hepato.EMMREML.fc.Rdata")
  > Total_Reads = sum(Colobus_Reads_Mapped, Hepatocystis_Reads_Mapped)
   * Calculate Percent Parasitemia:
  > Percent Parasitemia = Hepatocystis_Reads_Mapped / Total_Reads
- ## Calculate Relatedness
+ ### Calculate Relatedness
  > Necessary module(s): jvarkit/base, picard/2.23.8, gatk/4.2.0.0, bamtools/intel/2.5.1, samtools/intel/1.12, gcc/10.2.0, star/intel/2.7.6a
  ```bash
  module load r/intel/4.0.4
  Rscript scripts/relatedness.sh
  ```
- ## Find DE genes associated with parasitemia and relatedness
+ ### Find DE genes associated with parasitemia and relatedness
  > Necessary module(s):  r/intel/4.0.4
  
  > Necessary R package(s): BiocManager, edgeR, GO.db, gprofiler2
@@ -249,7 +249,7 @@ save.image("hepato.EMMREML.fc.Rdata")
 module load r/intel/4.0.4
 Rscript scripts/EMMREML_find_DE_host_genes.R
 ```
-## Correlate _Hepatocystis sp._ Life Stage and Colobus Immune Cell Type
+### Correlate _Hepatocystis sp._ Life Stage and Colobus Immune Cell Type
 > Necessary R package(s): Hmisc
 ```bash
 module load r/intel/3.6.0
