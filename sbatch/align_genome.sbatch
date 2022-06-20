@@ -19,25 +19,25 @@ working_dir=$SLURM_SUBMIT_DIR
 
 cd $working_dir
 
-module load gcc/9.1.0 star/intel/2.5.2b
+module load gcc/10.2.0 star/intel/2.7.6a
 
-gunzip $SCRATCH/colobus_project/STAR/data/Rcolobus/*TRIM_*.fastq.gz
+#gunzip $SCRATCH/colobus_hep/data/*TRIM_*.fastq.gz
+#mkdir results 
 
-DATA_DIR=$SCRATCH/colobus_project/STAR/data/Rcolobus
-THIS_IND=`ls $DATA_DIR/*_1.fastq | sed -e "s:.*/::" | grep -vi TRIM | head -n $SLURM_ARRAY_TASK_ID | tail -n1 | sed -e "s/_1.*//"`
+DATA_DIR=/scratch/aet359/colobus_paper/SnakeMake/data
+THIS_IND=`ls $DATA_DIR/*_001.fastq | sed -e "s:.*/::" | grep -vi TRIM | head -n $SLURM_ARRAY_TASK_ID | tail -n1 | sed -e "s/_001.*//"`
 
 
 READ_1="$DATA_DIR/${THIS_IND}_TRIM_R1.fastq"
-READ_2="$DATA_DIR/${THIS_IND}_TRIM_R2.fastq"
 
 
-STAR --genomeDir $SCRATCH/colobus_project/STAR/genomes/index/ \
+STAR --genomeDir /scratch/aet359/colobus_paper/SnakeMake/genomes/index \
 --runThreadN 15 \
---readFilesIn $READ_1 $READ_2 \
+--readFilesIn $READ_1 \
 --outSAMtype BAM SortedByCoordinate \
 --limitBAMsortRAM 40712737493 \
 --outSAMunmapped Within \
 --outSAMattributes Standard \
 --outFilterMismatchNoverReadLmax 0.04 \
---outFileNamePrefix $SCRATCH/colobus_project/STAR/results/${THIS_IND}
+--outFileNamePrefix /scratch/aet359/colobus_paper/SnakeMake/results/${THIS_IND}
 
