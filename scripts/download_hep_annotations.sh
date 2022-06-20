@@ -1,13 +1,12 @@
-#!/bin/bash
+#!/bin/sh
 
 # ----------------------------------------------------------------------------------------
-# --- Download Plasmodium gonderi annotations
+# --- Download Hepatocystis annotations
 # ----------------------------------------------------------------------------------------
 
-# --- Download annotations for Plasmodium gonderi genome, gonderi
+# --- Download annotations for Hepatocystis, Hep
 
-
-cd colobus_hep/genomes #Think I should be in /home/aet359/baboon_malaria not papAnu3?
+cd genomes/ 
 
 HEPATOCYSTIS_URL=ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/902/459/845
 
@@ -22,4 +21,4 @@ done
 
 mv GCA_902459845.2_HEP1_genomic.gtf hep.gtf #rename gtf file
 
-cd ..
+rm GCA_*
