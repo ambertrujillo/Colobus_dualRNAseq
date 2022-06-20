@@ -2,7 +2,7 @@
 
 
 # Pipeline
-### Prepare Reference Genome and Colobus Reads for Analysis
+## Prepare Reference Genome and Colobus Reads for Analysis
 
 1. Download Reference Genomes and Annotation files from RefSeq assembly in ftp directory
 > Necessary module(s): kent/385
@@ -46,7 +46,7 @@ sbatch/index_genomes.sbatch
 ```bash
 sbatch/trim_reads.sbatch
 ```
-5a. EdgeR pipeline
+## 5a. EdgeR pipeline
 ### Align Colobus reads to concatenated Host-Pathogen Referance sequence (ARRAY JOB)
 > Necessary module(s): gcc/10.2.0 star/intel/2.7.6a
 ```bash
@@ -152,7 +152,7 @@ Rscript scripts/edgeR_find_DE_host_genes.R
 # Hepatocystis
 Rscript scripts/edgeR_find_DE_pathogen_genes.R
 ```
-5b. EMMREML pipeline
+## 5b. EMMREML pipeline
 ### Align Colobus reads to concatenated Host-Pathogen Referance sequence (ARRAY JOB)
  > Necessary module(s): gcc/10.2.0, star/intel/2.7.6a
 ```bash
