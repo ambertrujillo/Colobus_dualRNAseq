@@ -22,3 +22,5 @@ done
 mv GCA_902459845.2_HEP1_genomic.gtf hep.gtf #rename gtf file
 
 rm GCA_*
+
+cd ..
