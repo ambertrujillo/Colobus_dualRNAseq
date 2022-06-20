@@ -2,7 +2,7 @@
 
 
 # Pipeline
-## Prepare Reference Genome and Colobus Reads for Analysis
+### Prepare Reference Genome and Colobus Reads for Analysis
 
 1. Download Reference Genomes and Annotation files from RefSeq assembly in ftp directory
 > Necessary module(s): kent/385
