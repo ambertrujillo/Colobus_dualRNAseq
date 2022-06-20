@@ -1,10 +1,12 @@
-#!/bin/bash
+#!/bin/sh
 
 # ----------------------------------------------------------------------------------------
 # --- Download Colobus annotations
 # ----------------------------------------------------------------------------------------
 
 # --- Download annotations for Piliocolobus tephrosceles genome, Rcolobus
+
+cd genomes/
 
 RCOLOBUS_URL=ftp://ftp.ncbi.nlm.nih.gov/genomes/all/annotation_releases/591936/102
 
@@ -40,7 +42,12 @@ sed '
     s/^\NC_045451.1/Colchr18/
     s/^\NC_045452.1/Colchr19/
     s/^\NC_045453.1/Colchr20/
-    s/^\NC_045454.1/Colchr21/g' GCF_002776525.3_ASM277652v3_genomic.gtf > GCF_002776525.3_ASM277652v3_genomic.fix.gtf
+    s/^\NC_045454.1/Colchr21/
+    s/^\NC_045455.1/ColchrX/
+    s/^\NC_045456.1/ColchrY/g' GCF_002776525.3_ASM277652v3_genomic.gtf > GCF_002776525.3_ASM277652v3_genomic.fix.gtf
 
 #rename gtf file
 mv GCF_002776525.3_ASM277652v3_genomic.fix.gtf Rcolobus.fix.gtf 
+
+#remove GCF files
+rm GCF_002776525.3_ASM277652v3_genomic.g*
