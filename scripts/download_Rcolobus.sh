@@ -33,3 +33,5 @@ cd tmp_for_sort/;
 ls -v | xargs cat > ../${GENOME_FA}
 cd ..
 rm -r tmp_for_sort
+
+cd ..
