@@ -51,3 +51,5 @@ mv GCF_002776525.3_ASM277652v3_genomic.fix.gtf Rcolobus.fix.gtf
 
 #remove GCF files
 rm GCF_002776525.3_ASM277652v3_genomic.g*
+
+cd ..
