@@ -1,5 +1,15 @@
 #!/bin/bash
 
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
+#SBATCH --time=24:00:00
+#SBATCH --mem=48GB
+#SBATCH --job-name=index_genome
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=aet359@nyu.edu
+#SBATCH --output=starindex_%j.out
+
 # ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
