@@ -1,10 +1,9 @@
 #!/bin/sh
 
-# Script to download Plasmodium gonderi genome, gonderi
+# Script to download Hepatocystis genome, hep
 
-module load kent/328
+module load kent/385
 
-mkdir -p genomes/
 cd genomes/
 
 GENOME_FA=hep.fa
