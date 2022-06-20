@@ -1,8 +1,8 @@
 #!/bin/sh
-
+  
 # Script to download Colobus genome, ASM241v2
 
-module load kent/328
+module load kent/385
 
 mkdir -p genomes
 cd genomes
