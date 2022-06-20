@@ -28,7 +28,7 @@ cat *.fa > combined.fa
 ```
   * Annotation files
 ```bash
-cat *.gtf > combined.gtf
+cat Rcolobus.fix.gtf hep.gtf > combined.gtf
 ```
 3. Index concatenated Reference Genome (SBATCH JOB)
 > Necessary module(s): gcc/9.1.0 and star/intel/2.5.2b
