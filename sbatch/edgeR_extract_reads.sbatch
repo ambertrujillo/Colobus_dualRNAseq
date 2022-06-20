@@ -23,7 +23,7 @@ module load samtools/intel/1.12
 
 DATA_DIR=/scratch/aet359/colobus_paper/SnakeMake/data
 THIS_IND=`ls $DATA_DIR/*_001.fastq | sed -e "s:.*/::" | grep -vi TRIM | head -n $SLURM_ARRAY_TASK_ID | tail -n1 | sed -e "s/_001.*//"`
-READ_DIR=/scratch/aet359/colobus_paper/SnakeMake/results
+READ_DIR=/scratch/aet359/colobus_paper/SnakeMake/edgeR_results
 
 echo "Extracting primary reads and reads from desired chromosomes..."
 
