@@ -2,7 +2,7 @@
 
 
 # Pipeline
-## Align RNAseq Data to Reference Genome
+## Prepare Reference Genome and Colobus Reads for Analysis
 
 1. Download Reference Genomes and Annotation files from RefSeq assembly in ftp directory
 > Necessary module(s): kent/385
