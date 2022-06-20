@@ -21,9 +21,6 @@ cd $working_dir
 
 module load gcc/10.2.0 star/intel/2.7.6a
 
-#gunzip $SCRATCH/colobus_hep/data/*TRIM_*.fastq.gz
-#mkdir results 
-
 DATA_DIR=/scratch/aet359/colobus_paper/SnakeMake/data
 THIS_IND=`ls $DATA_DIR/*_001.fastq | sed -e "s:.*/::" | grep -vi TRIM | head -n $SLURM_ARRAY_TASK_ID | tail -n1 | sed -e "s/_001.*//"`
 
@@ -39,5 +36,5 @@ STAR --genomeDir /scratch/aet359/colobus_paper/SnakeMake/genomes/index \
 --outSAMunmapped Within \
 --outSAMattributes Standard \
 --outFilterMismatchNoverReadLmax 0.04 \
---outFileNamePrefix /scratch/aet359/colobus_paper/SnakeMake/results/${THIS_IND}
+--outFileNamePrefix /scratch/aet359/colobus_paper/SnakeMake/edgeR_results/${THIS_IND}
 
