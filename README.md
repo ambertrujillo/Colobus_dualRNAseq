@@ -5,7 +5,7 @@
 ## Align RNAseq Data to Reference Genome
 
 1. Download Reference Genomes and Annotation files from RefSeq assembly in ftp directory
-> Necessary module(s): kent/328
+> Necessary module(s): kent/385
   * _Piliocolobus tephrosceles_
 ```bash
 scripts/download_Rcolobus.sh
@@ -31,30 +31,14 @@ cat *.fa > combined.fa
 cat Rcolobus.fix.gtf hep.gtf > combined.gtf
 ```
 3. Index concatenated Reference Genome (SBATCH JOB)
-> Necessary module(s): gcc/9.1.0 and star/intel/2.5.2b
+> Necessary module(s): gcc/10.2.0, star/intel/2.7.6a
 
 > To submit sbatch job: `sbatch sbatch/name_of_job.sbatch`
 
 ```sbatch
 sbatch/index_genomes.sbatch
 ```
-4. Download Ugandan Red Colobus Reads
-> Necessary module(s): edirect/20181128, sra-tools/intel/2.9.6, and parallel/20171022
-
-> After creating SRR.numbers, prefetch and dump are SBATCH JOBS
-
-```bash
-mkdir data/Rcolobus
-cd data/Rcolobus
-esearch -db sra -query PRJNA413051 | efetch --format runinfo | cut -d "," -f 1 > SRR.numbers
-```
-```
-sbatch/prefetch.sbatch
-```
-```
-sbatch/dump.sbatch
-```
-5. Trim Colobus reads (ARRAY JOB)
+4. Trim Colobus reads (ARRAY JOB)
 > Necessary module(s): trimmomatic/0.36
 
 > To submit an sbatch array job: `sbatch --array=1-[number of individuals] sbatch/name_of_job.sbatch`
@@ -62,18 +46,28 @@ sbatch/dump.sbatch
 ```bash
 sbatch/trim_reads.sbatch
 ```
-6. Align Colobus reads to concatenated Host-Pathogen Referance sequence (ARRAY JOB)
-> Necessary module(s): gcc/9.1.0 and star/intel/2.5.2b
+5a. EdgeR pipeline
+### Align Colobus reads to concatenated Host-Pathogen Referance sequence (ARRAY JOB)
+> Necessary module(s): gcc/10.2.0 star/intel/2.7.6a
 ```bash
-mkdir results
+mkdir edgeR_results
+gunzip $SCRATCH/colobus_hep/data/*TRIM_*.fastq.gz
 ```
 ```bash
-sbatch/align_genome.sbatch
+sbatch/edgeR_align_genome.sbatch
 ```
 ## Obtain "Unique" Host and Pathogen Data (ARRAY JOB)
+> Necessary module(s): bamtools/intel/2.5.1, samtools/intel/1.12
 ```bash
-mkdir results/mapped_reads
-cd results/mapped_reads
+# Create index of reference genome
+cd /scratch/aet359/colobus_paper/SnakeMake/genomes/
+samtools faidx combined.fa
+# Create bed file of chromosomes of interest for unique host and pathogen data
+awk 'BEGIN {OFS="\t"}; { print $1,1,$2 }' combined.fa.fai | grep -v "NW_022" > to_include.bed
+cd ..
+# Create necessary results files
+mkdir edgeR_results/mapped_reads
+cd edgeR_results/mapped_reads
 mkdir colobus
 cd colobus
 mkdir merged_reads
@@ -84,15 +78,15 @@ mkdir merged_reads
 cd ../../..
 ```
 ```bash
-sbatch/extract_reads.sbatch
+sbatch/edgeR_extract_reads.sbatch
 ```
 
 ## Obtain Read Count Matrix and Calculate Percent Parasitemia
-> Necessary module(s): r/intel/3.6.0
+> Necessary module(s): r/intel/4.0.4
 
 > Necessary R package(s): BiocManager, Rsubread
 ```bash
-module load r/intel/3.6.0
+module load r/intel/4.0.4
 R
 ```
 ```R
@@ -102,15 +96,16 @@ BiocManager::install("Rsubread")
 
 library(Rsubread)
 
-bams = list.files(path = "results/mapped_reads/colobus/merged_reads", pattern = "*.bam$", full.names=TRUE)
+bams = list.files(path = "edgeR_results/mapped_reads/colobus", pattern = "*.bam$", full.names=TRUE)
 gtf.file = "genomes/combined.gtf"
-colobusfc = featureCounts(bams, annot.ext=gtf.file,
+colobus.fc = featureCounts(bams, annot.ext=gtf.file,
+    GTF.featureType="gene",
     isGTFAnnotationFile=TRUE,
-    isPairedEnd=TRUE,
+    isPairedEnd=FALSE,
     nthreads=8,
-    allowMultiOverlap=TRUE)
+    allowMultiOverlap=FALSE)
 
-save.image("colobusfc.Rdata")
+save.image("colobus.fc.Rdata")
 ```
   * As file is running, create percent_parasitemia table in excel (enter Colobus_Reads_Mapped):
  > Colobus_Reads_Mapped = "Successfully assigned alignments"
@@ -123,16 +118,16 @@ BiocManager::install("Rsubread")
 
 library(Rsubread)
 
-bams = list.files(path = "results/mapped_reads/plasmodium/merged_reads", pattern = "*.bam$", full.names=TRUE)
+bams = list.files(path = "edgeR_results/mapped_reads/hepatocystis", pattern = "*.bam$", full.names=TRUE)
 gtf.file = "genomes/combined.gtf"
-Hepatofc = featureCounts(bams, annot.ext=gtf.file,
+hepato.fc = featureCounts(bams, annot.ext=gtf.file,
     GTF.featureType="gene",
     isGTFAnnotationFile=TRUE,
-    isPairedEnd=TRUE,
+    isPairedEnd=FALSE,
     nthreads=8,
     allowMultiOverlap=FALSE)
 
-save.image("Hepatofc.Rdata")
+save.image("hepato.fc.Rdata")
 ```
   * As file is running, create percent_parasitemia table in excel (enter Hepatocystis_Reads_Mapped):
  > Plasmodium_Reads_Mapped = "Successfully assigned alignments"
@@ -141,25 +136,119 @@ save.image("Hepatofc.Rdata")
  > Total_Reads = sum(Colobus_Reads_Mapped, Hepatocystis_Reads_Mapped)
   * Calculate Percent Parasitemia:
  > Percent Parasitemia = Hepatocystis_Reads_Mapped / Total_Reads
- 
+ ## Run Immune cell composition PCA for M<sub>immune</sub> model
+ ```bash
+ module load r/intel/4.0.4
+ Rscript scripts/immune_cell_PCR.R
+ ```
  ## Find DE genes associated with parasitemia
- > Necessary module(s): r/intel/3.6.0
+ > Necessary module(s):  r/intel/4.0.4
  
  > Necessary R package(s): BiocManager, edgeR, GO.db, gprofiler2
 ```bash
-module load r/intel/3.6.0
-Rscript scripts/find_DE_host_genes.R
+module load r/intel/4.0.4
+# Colobus
+Rscript scripts/edgeR_find_DE_host_genes.R
+# Hepatocystis
+Rscript scripts/edgeR_find_DE_pathogen_genes.R
 ```
- ## Single-Cell RNAseq Deconvolution
- > Necessary module(s): r/intel/3.6.0
+5b. EMMREML pipeline
+## Align Colobus reads to concatenated Host-Pathogen Referance sequence (ARRAY JOB)
+ > Necessary module(s): gcc/10.2.0, star/intel/2.7.6a
+```bash
+mkdir EMMREML_results
+```
+```bash
+sbatch/EMMREML_align_genome.sbatch
+```
+## Obtain "Unique" Host and Pathogen Data (ARRAY JOB)
+> Necessary module(s): bamtools/intel/2.5.1, samtools/intel/1.12
+```bash
+# Create necessary results files
+mkdir EMMREML_results/mapped_reads
+cd EMMREML_results/mapped_reads
+mkdir colobus
+cd colobus
+mkdir merged_reads
+cd ..
+mkdir hepatocystis
+cd hepatocystis
+mkdir merged_reads
+cd ../../..
+```
+```bash
+sbatch/EMMREML_extract_reads.sbatch
+```
+
+## Obtain Read Count Matrix and Calculate Percent Parasitemia
+> Necessary module(s): r/intel/4.0.4
+
+> Necessary R package(s): BiocManager, Rsubread
+```bash
+module load r/intel/4.0.4
+R
+```
+```R
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("Rsubread")
+
+library(Rsubread)
+
+bams = list.files(path = "EMMREML_results/mapped_reads/colobus", pattern = "*.bam$", full.names=TRUE)
+gtf.file = "genomes/combined.gtf"
+colobus.EMMREML.fc = featureCounts(bams, annot.ext=gtf.file,
+    GTF.featureType="gene",
+    isGTFAnnotationFile=TRUE,
+    isPairedEnd=FALSE,
+    nthreads=8,
+    allowMultiOverlap=FALSE)
+
+save.image("colobus.EMMREML.fc.Rdata")
+```
+  * As file is running, create percent_parasitemia table in excel (enter Colobus_Reads_Mapped):
+ > Colobus_Reads_Mapped = "Successfully assigned alignments"
  
- > Necessary R package(s): Seurat, limma, Biobase, reshape2, bseqsc, xbioc, ggplot2, tidyr
+  * Do same for "unique" pathogen data 
+```R
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("Rsubread")
+
+library(Rsubread)
+
+bams = list.files(path = "EMMREML_results/mapped_reads/hepatocystis", pattern = "*.bam$", full.names=TRUE)
+gtf.file = "genomes/combined.gtf"
+hepato.EMMREML.fc = featureCounts(bams, annot.ext=gtf.file,
+    GTF.featureType="gene",
+    isGTFAnnotationFile=TRUE,
+    isPairedEnd=FALSE,
+    nthreads=8,
+    allowMultiOverlap=FALSE)
+
+save.image("hepato.EMMREML.fc.Rdata")
+```
+  * As file is running, create percent_parasitemia table in excel (enter Hepatocystis_Reads_Mapped):
+ > Plasmodium_Reads_Mapped = "Successfully assigned alignments"
  
- > Necessary Files: phenotype_data.csv, single_cell_gene_matrix.csv, genehepato.ind.fc.Rdata (all available in data_files)
+  * Calculate Total_Reads:
+ > Total_Reads = sum(Colobus_Reads_Mapped, Hepatocystis_Reads_Mapped)
+  * Calculate Percent Parasitemia:
+ > Percent Parasitemia = Hepatocystis_Reads_Mapped / Total_Reads
+ ## Calculate Relatedness
+ > Necessary module(s): jvarkit/base, picard/2.23.8, gatk/4.2.0.0, bamtools/intel/2.5.1, samtools/intel/1.12, gcc/10.2.0, star/intel/2.7.6a
  ```bash
- module load r/intel/3.6.0
- Rscript script/deconvolution.R
+ module load r/intel/4.0.4
+ Rscript scripts/relatedness.sh
  ```
+ ## Find DE genes associated with parasitemia and relatedness
+ > Necessary module(s):  r/intel/4.0.4
+ 
+ > Necessary R package(s): BiocManager, edgeR, GO.db, gprofiler2
+```bash
+module load r/intel/4.0.4
+Rscript scripts/EMMREML_find_DE_host_genes.R
+```
 ## Correlate _Hepatocystis sp._ Life Stage and Colobus Immune Cell Type
 > Necessary R package(s): Hmisc
 ```bash
