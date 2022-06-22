@@ -12,20 +12,20 @@ library(plyr)
 #--> Scatter plot of parasitemia
 
 # Load Rdata object
-load("after_DE_analysis.Aunin_med.Rdata")
+#load("after_DE_analysis.Aunin_med.Rdata")
+load("Fig1_and_3.RData")
 
 hepato = data.frame(Sample_name   = parasitemia$Sample_name,
-                    hepato_reads  = parasitemia$Aunin_hep_ct,
-                    colobus_reads = parasitemia$Colobus_Reads_Mapped_Hepatocystis_mapping)
-hepato$col_hunthou = hepato$colobus_reads / 100000
-hepato$hep_per_hunthoucol = hepato$hepato_reads / hepato$col_hunthou
+                    hepato_reads  = parasitemia$Hepatocystis_Reads_gene,
+                    colobus_reads = parasitemia$Colobus_Reads_gene)
 
-p = ggplot(hepato, aes(x=Sample_name, y=hep_per_hunthoucol)) +
+p = ggplot(hepato, aes(x=Sample_name,
+            y=hepato_reads / (hepato_reads + colobus_reads))) +
         geom_point() +
         theme_bw() +
         theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
         xlab("Sample Name") +
-        ylab("Hepatocystis Reads per 100,000 Colobus Reads")
+        ylab("Hepatocystis Reads as Proportion of Total Reads")
 
 hepato$total_reads = hepato$hepato_reads + hepato$colobus_reads
 
@@ -66,7 +66,7 @@ ggsave(p, file="reports/parasitemia_barplot.pdf",
 #--> Cell type proportions against parasitemia
 
 rm(list=ls())
-load("after_cell_comp_DE.Rdata")
+load("immune_comp_stopping_point.Rdata")
 
 # Monocytes
 
@@ -104,19 +104,45 @@ p = ggplot(parasitemia.immune, aes(parasitemia.proxy, Neutrophils)) +
 ggsave(p, file="reports/fancy_cell_type_prop_by_parasitemia.Neutrophils.pdf",
     height=2.5, width=2.5)
 
+# Memory activated CD4+ T cells
+
+p = ggplot(parasitemia.immune, aes(parasitemia.proxy, MemactCD4plus)) +
+        geom_smooth(method="lm", se=FALSE, col="#4D0000", lwd=0.25) +
+        geom_point(col="#CC0033") +
+        xlab("Parasitemia Proxy") +
+        ylab("Neutrophil Proportion") +
+        theme_bw() +
+        theme(panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.border = element_blank(),
+              axis.line = element_line(color = "#4D0000"),
+              axis.text.x = element_text(color = "grey45"),
+              axis.text.y = element_text(color = "grey45"))
+
+ggsave(p, file="reports/fancy_cell_type_prop_by_parasitemia.MemactCD4plus.pdf",
+    height=2.5, width=2.5)
+
 #--> Expression of genes of interest by parasitemia
 
 rm(list=ls())
-load("after_DE_analysis.Aunin_med.Rdata")
+#load("after_DE_analysis.Aunin_med.Rdata")
+load("Fig1_and_3.RData")
+load("data/colobus.fc.Rdata")
+
+fc = colobus.fc
 
 library(edgeR)
 
-fc.dge = DGEList(counts = fc$counts, genes = fc$annotation)
-keep = (rowSums(cpm(fc.dge) > 5) >= 4)
-fc.dge = fc.dge[keep, , keep.lib.sizes=FALSE]
+fc.dge = DGEList(counts=fc$counts, genes=fc$annotation)
 fc.dge.norm  = calcNormFactors(fc.dge)
+# Get CPM just normalized by library composition
+cpm = cpm(fc.dge.norm)
+# Filter for genes with low counts across conditions
+keep = rowSums(cpm(fc.dge.norm) > 5) >= 2
+fc.dge.norm = fc.dge.norm[keep, , keep.lib.sizes=FALSE]
 
-parasitemia$parasitemia.proxy = parasitemia$parasitemia.proxy.aunin_med
+parasitemia$parasitemia.proxy = parasitemia$Hepatocystis_Reads_gene /
+                                parasitemia$Colobus_Reads_gene
 
 design = model.matrix(~ parasitemia.proxy, data=parasitemia)
 disp = estimateDisp(fc.dge.norm, design, robust = TRUE)
@@ -125,12 +151,12 @@ cpm.disp = cpm(disp)
 plot.gene.expr = function(gene.name) {
     cpm.disp.gene_of_interest = cpm.disp[row.names(cpm.disp) == gene.name,]
     ct = data.frame(counts      = cpm.disp.gene_of_interest,
-                    parasitemia = parasitemia$parasitemia.proxy.aunin_med)
+                    parasitemia = parasitemia$parasitemia.proxy)
 
     # Remove outlier in ACKR1
-    if (gene.name == "ACKR1") {
-        ct = ct[ct$counts < 30,]
-    }
+    #if (gene.name == "ACKR1") {
+    #    ct = ct[ct$counts < 30,]
+    #}
 
     p = ggplot(ct, aes(parasitemia, counts)) +
             geom_smooth(method="lm", se=FALSE, col="#4D0000", lwd=0.25) +
@@ -156,8 +182,7 @@ plot.gene.expr = function(gene.name) {
 expr.plots.ackr1 = lapply(c("ACKR1"), plot.gene.expr)
 
 # Plot up-regulated genes
-up.genes = c("UBE2K", "PP2D1", "TMEM167A", "LSM14A",
-             "UBE2B", "TTLL12", "AGFG1", "APOBEC2")
+up.genes = c("PAPPA2", "ABCB11", "FBXW11", "TMEM132D")
 
 expr.plots.up = lapply(up.genes, plot.gene.expr)
 
@@ -166,19 +191,19 @@ names(expr.plots.up) = up.genes
 expr.plots.up = lapply(expr.plots.up, function (x) { x = x + rremove("xy.title") })
 
 p.all = ggarrange(plotlist = expr.plots.up,
-    ncol = 4, nrow = 2)
+    ncol = 4, nrow = 1)
 
 p.all = annotate_figure(p.all,
                 bottom = text_grob("Parasitemia Proxy"),
-                left = text_grob("Gene expression\n(Normalized count per million reads)",
+                left = text_grob("Gene expression\n(Normalized count\nper million reads)",
                     rot = 90)
                 )
 
 ggsave(p.all, file="reports/cpm_by_parasitemia.up.Aunin_med.pdf",
-    height=4, width=8)
+    height=2.1, width=8)
 
 # Plot down-regulated genes
-dn.genes = c("NAGA", "TBC1D9B", "ZNF682")
+dn.genes = c("TBC1D9B", "HRH2", "NAGA")
 
 expr.plots.dn = lapply(dn.genes, plot.gene.expr)
 
@@ -201,17 +226,26 @@ ggsave(p.all, file="reports/cpm_by_parasitemia.down.Aunin_med.pdf",
 #--> Volcano Plot
 
 rm(list=ls())
-load("after_DE_analysis.Aunin_med.Rdata")
+
+#load("after_DE_analysis.Aunin_med.Rdata")
+load("Fig1_and_3.RData")
+load("data/colobus.fc.Rdata")
+
+fc = colobus.fc
 
 library(edgeR)
 library(ggrepel)
 
-fc.dge = DGEList(counts = fc$counts, genes = fc$annotation)
-keep = (rowSums(cpm(fc.dge) > 5) >= 4)
-fc.dge = fc.dge[keep, , keep.lib.sizes=FALSE]
+fc.dge = DGEList(counts=fc$counts, genes=fc$annotation)
 fc.dge.norm  = calcNormFactors(fc.dge)
+# Get CPM just normalized by library composition
+cpm = cpm(fc.dge.norm)
+# Filter for genes with low counts across conditions
+keep = rowSums(cpm(fc.dge.norm) > 5) >= 2
+fc.dge.norm = fc.dge.norm[keep, , keep.lib.sizes=FALSE]
 
-parasitemia$parasitemia.proxy = parasitemia$parasitemia.proxy.aunin_med
+parasitemia$parasitemia.proxy = parasitemia$Hepatocystis_Reads_gene /
+                                parasitemia$Colobus_Reads_gene
 
 design = model.matrix(~ parasitemia.proxy, data=parasitemia)
 disp = estimateDisp(fc.dge.norm, design, robust = TRUE)
@@ -230,21 +264,20 @@ tt$table = tt$table[!grepl("^LOC", tt$table$GeneID),]
 bloodgenes = c("RHAG", "SPTA1", "KLF1", "ABCB6",
                "SLC4A1", "SLC2A1", "STEAP3", "JAK2")
 
+up.genes = c("PAPPA2", "ABCB11", "FBXW11", "TMEM132D")
+dn.genes = c("TBC1D9B", "HRH2", "NAGA")
+
 p = ggplot(tt$table, aes(logFC, -log10(FDR), col=abs(logFC))) +
     geom_point(size=0.5) +
-    geom_text_repel(data=tt$table[tt$table$FDR < 0.05 & tt$table$logFC > 0,],
+    geom_text_repel(#data=tt$table[tt$table$FDR < 1e-8 & tt$table$logFC > 0,],
+        data=tt$table[row.names(tt$table) %in% up.genes,],
         aes(label = GeneID), size = 2, color="black",
         force = 10, min.segment.length = 0,
         segment.size=0.1,
         nudge_x=3, nudge_y=0.25) +
-    geom_text_repel(data=tt$table[tt$table$GeneID == "ACKR1",],
+    geom_text_repel(data=tt$table[tt$table$FDR < 1e-3 & tt$table$logFC < 0,],
         aes(label = GeneID), size = 2, color="black",
-        force = 10, min.segment.length = 0,
-        segment.size=0.1,
-        nudge_x=1, nudge_y=0.25) +
-    geom_text_repel(data=tt$table[tt$table$FDR < 0.05 & tt$table$logFC < 0,],
-        aes(label = GeneID), size = 2, color="black",
-        force = 10, min.segment.length = 0,
+        min.segment.length = 0,
         segment.size=0.1,
         nudge_x=-3, nudge_y=0.25) +
     geom_point(data=tt$table[tt$table$FDR < 0.05,],
@@ -253,8 +286,8 @@ p = ggplot(tt$table, aes(logFC, -log10(FDR), col=abs(logFC))) +
         aes(logFC, -log10(FDR)), pch=23, col="#4D0000", fill="white", size=1.5) +
     xlab(expression(paste(log[2], "(Fold Change)"))) +
     ylab(expression(paste(-log[10], "(FDR)"))) +
-    xlim(c(-20,20)) +
-    ylim(c(0, 2.25)) +
+    xlim(c(-5,5)) +
+    ylim(c(0, 12)) +
     scale_color_gradient(
         low = "grey25",
         high = "grey40",
@@ -281,10 +314,11 @@ library(ggrepel)
 
 fc.dge = DGEList(counts = fc$counts, genes = fc$annotation)
 keep = (rowSums(cpm(fc.dge) > 5) >= 4)
+keep = rowSums(cpm(fc.dge.norm) > 5) >= 2
 fc.dge = fc.dge[keep, , keep.lib.sizes=FALSE]
 fc.dge.norm  = calcNormFactors(fc.dge)
 
-parasitemia$parasitemia.proxy = parasitemia$parasitemia.proxy.aunin_med
+parasitemia$parasitemia.proxy = parasitemia$parasitemia.proxy
 
 design = model.matrix(~ parasitemia.proxy, data=parasitemia)
 disp = estimateDisp(fc.dge.norm, design, robust = TRUE)
