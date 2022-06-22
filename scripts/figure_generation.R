@@ -12,7 +12,6 @@ library(plyr)
 #--> Scatter plot of parasitemia
 
 # Load Rdata object
-#load("after_DE_analysis.Aunin_med.Rdata")
 load("Fig1_and_3.RData")
 
 hepato = data.frame(Sample_name   = parasitemia$Sample_name,
@@ -125,7 +124,6 @@ ggsave(p, file="reports/fancy_cell_type_prop_by_parasitemia.MemactCD4plus.pdf",
 #--> Expression of genes of interest by parasitemia
 
 rm(list=ls())
-#load("after_DE_analysis.Aunin_med.Rdata")
 load("Fig1_and_3.RData")
 load("data/colobus.fc.Rdata")
 
