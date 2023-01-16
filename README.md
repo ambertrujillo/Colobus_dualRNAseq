@@ -130,12 +130,12 @@ hepato.fc = featureCounts(bams, annot.ext=gtf.file,
 save.image("hepato.fc.Rdata")
 ```
   * As file is running, create percent_parasitemia table in excel (enter Hepatocystis_Reads_Mapped):
- > Plasmodium_Reads_Mapped = "Successfully assigned alignments"
+ > Hepatocystis_Reads_Mapped = "Successfully assigned alignments"
  
   * Calculate Total_Reads:
  > Total_Reads = sum(Colobus_Reads_Mapped, Hepatocystis_Reads_Mapped)
   * Calculate Percent Parasitemia:
- > Percent Parasitemia = Hepatocystis_Reads_Mapped / Total_Reads
+ > Percent Hepotocystis = Hepatocystis_Reads_Mapped / Total_Reads
  ### Run Immune cell composition PCA for M<sub>immune</sub> model
  ```bash
  module load r/intel/4.0.4
